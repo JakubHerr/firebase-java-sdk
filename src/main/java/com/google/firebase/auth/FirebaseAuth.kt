@@ -292,6 +292,10 @@ class FirebaseAuth constructor(
     }
 
     companion object {
+
+        @JvmStatic
+        fun getInstance(): FirebaseAuth = getInstance(FirebaseApp.getInstance())
+
         @JvmStatic
         fun getInstance(app: FirebaseApp): FirebaseAuth = app.get(FirebaseAuth::class.java)
 
