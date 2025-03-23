@@ -8,6 +8,7 @@ abstract class FirebaseUser {
     abstract val photoUrl: String?
     abstract val displayName: String?
     abstract val isAnonymous: Boolean
+    abstract val isEmailVerified: Boolean
 
     abstract fun delete(): Task<Void>
 
@@ -25,7 +26,6 @@ abstract class FirebaseUser {
     abstract fun updateProfile(request: UserProfileChangeRequest): Task<Unit>
 
     val phoneNumber: String get() = TODO()
-    val isEmailVerified: Boolean get() = TODO()
     val metadata: FirebaseUserMetadata get() = TODO()
     val multiFactor: MultiFactor get() = TODO()
     val providerData: List<UserInfo> get() = TODO()

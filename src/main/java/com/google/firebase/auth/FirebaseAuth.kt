@@ -64,6 +64,7 @@ class FirebaseUserImpl internal constructor(
     override val email: String?,
     override val photoUrl: String?,
     override val displayName: String?,
+    override val isEmailVerified: Boolean,
     @Transient
     private val urlFactory: UrlFactory = UrlFactory(app)
 ) : FirebaseUser() {
@@ -74,6 +75,7 @@ class FirebaseUserImpl internal constructor(
         email: String? = data.getOrElse("email") { null }?.jsonPrimitive?.contentOrNull,
         photoUrl: String? = data.getOrElse("photoUrl") { null }?.jsonPrimitive?.contentOrNull,
         displayName: String? = data.getOrElse("displayName") { null }?.jsonPrimitive?.contentOrNull,
+        isEmailVerified: Boolean = data["emailVerified"]?.jsonPrimitive?.booleanOrNull ?: false,
         urlFactory: UrlFactory = UrlFactory(app)
     ) : this(
         app = app,
@@ -89,6 +91,7 @@ class FirebaseUserImpl internal constructor(
         email = email,
         photoUrl = photoUrl ?: data["photo_url"]?.jsonPrimitive?.contentOrNull,
         displayName = displayName ?: data["display_name"]?.jsonPrimitive?.contentOrNull,
+        isEmailVerified = isEmailVerified,
         urlFactory = urlFactory
     )
 
@@ -428,7 +431,8 @@ class FirebaseAuth constructor(
                                     createdAt = newBody["createdAt"]?.jsonPrimitive?.longOrNull ?: prev.createdAt,
                                     email = newBody["email"]?.jsonPrimitive?.contentOrNull ?: prev.email,
                                     photoUrl = newBody["photoUrl"]?.jsonPrimitive?.contentOrNull ?: prev.photoUrl,
-                                    displayName = newBody["displayName"]?.jsonPrimitive?.contentOrNull ?: prev.displayName
+                                    displayName = newBody["displayName"]?.jsonPrimitive?.contentOrNull ?: prev.displayName,
+                                    isEmailVerified = newBody["emailVerified"]?.jsonPrimitive?.booleanOrNull ?: prev.isEmailVerified
                                 )
                             source.setResult(AuthResult { user })
                         }
@@ -686,7 +690,8 @@ class FirebaseAuth constructor(
                                     createdAt = prev.createdAt,
                                     email = newBody["newEmail"]?.jsonPrimitive?.contentOrNull ?: prev.email,
                                     photoUrl = newBody["photoUrl"]?.jsonPrimitive?.contentOrNull ?: prev.photoUrl,
-                                    displayName = newBody["displayName"]?.jsonPrimitive?.contentOrNull ?: prev.displayName
+                                    displayName = newBody["displayName"]?.jsonPrimitive?.contentOrNull ?: prev.displayName,
+                                    isEmailVerified = newBody["emailVerified"]?.jsonPrimitive?.booleanOrNull ?: prev.isEmailVerified
                                 )
                         }
                         source.setResult(null)
@@ -761,7 +766,8 @@ class FirebaseAuth constructor(
                                     createdAt = prev.createdAt,
                                     email = newBody["newEmail"]?.jsonPrimitive?.contentOrNull ?: prev.email,
                                     photoUrl = newBody["photoUrl"]?.jsonPrimitive?.contentOrNull ?: prev.photoUrl,
-                                    displayName = newBody["displayName"]?.jsonPrimitive?.contentOrNull ?: prev.displayName
+                                    displayName = newBody["displayName"]?.jsonPrimitive?.contentOrNull ?: prev.displayName,
+                                    isEmailVerified = newBody["emailVerified"]?.jsonPrimitive?.booleanOrNull ?: prev.isEmailVerified
                                 )
                         }
                         source.setResult(null)
