@@ -829,7 +829,50 @@ class FirebaseAuth constructor(
         urlFactory = UrlFactory(app, "http://$host:$port/")
     }
 
-    fun sendPasswordResetEmail(email: String, settings: ActionCodeSettings?): Task<Unit> = TODO()
+    // this is just a hack that does not actually use settings
+    fun sendPasswordResetEmail(email: String, settings: ActionCodeSettings?): Task<Unit> {
+        val source = TaskCompletionSource<Unit>()
+
+        val body =
+            RequestBody.create(
+                json,
+                JsonObject(
+                    mapOf(
+                        "requestType" to JsonPrimitive("PASSWORD_RESET"),
+                        "email" to JsonPrimitive(email),
+                    )
+                ).toString()
+            )
+
+        val req =
+            Request
+                .Builder()
+                .url(urlFactory.buildUrl("identitytoolkit.googleapis.com/v1/accounts:sendOobCode"))
+                .post(body)
+                .build()
+
+
+        client.newCall(req).enqueue(
+            object : Callback {
+                override fun onFailure(
+                    call: Call,
+                    e: IOException
+                ) {
+                    source.setException(FirebaseException(e.toString(), e))
+                }
+
+                @Throws(IOException::class)
+                override fun onResponse(call: Call, response: Response) {
+
+
+                    source.setResult(null)
+                }
+            }
+        )
+
+        return source.task
+    }
+
     fun signInWithCredential(authCredential: AuthCredential): Task<AuthResult> = TODO()
     fun checkActionCode(code: String): Task<ActionCodeResult> = TODO()
 
