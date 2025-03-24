@@ -33,7 +33,7 @@ abstract class FirebaseUser {
 
     fun linkWithCredential(credential: AuthCredential): Task<AuthResult> = TODO()
 
-    fun sendEmailVerification(): Task<Unit> = TODO()
+    abstract fun sendEmailVerification(): Task<Unit>
 
     fun sendEmailVerification(actionCodeSettings: ActionCodeSettings): Task<Unit> = TODO()
 

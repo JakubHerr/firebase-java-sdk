@@ -153,6 +153,12 @@ class FirebaseUserImpl internal constructor(
         return source.task
     }
 
+    override fun sendEmailVerification(): Task<Unit> {
+        val source = TaskCompletionSource<Unit>()
+        FirebaseAuth.getInstance(app).sendVerificationEmail(this, source)
+        return source.task
+    }
+
     override fun updateEmail(email: String): Task<Unit> = FirebaseAuth.getInstance(app).updateEmail(email)
 
     override fun reload(): Task<Void> {
@@ -559,6 +565,42 @@ class FirebaseAuth constructor(
             ?: enqueueRefreshTokenCall(user)
         refreshSource.task.addOnSuccessListener { source.setResult(map(it)) }
         refreshSource.task.addOnFailureListener { source.setException(FirebaseException(it.toString(), it)) }
+    }
+
+    internal fun sendVerificationEmail(user: FirebaseUserImpl, source: TaskCompletionSource<Unit>) {
+        val body =
+            RequestBody.create(
+                json,
+                JsonObject(
+                    mapOf(
+                        "requestType" to JsonPrimitive("VERIFY_EMAIL"),
+                        "idToken" to JsonPrimitive(user.idToken),
+                    )
+                ).toString()
+            )
+
+        val req =
+            Request
+                .Builder()
+                .url(urlFactory.buildUrl("identitytoolkit.googleapis.com/v1/accounts:sendOobCode"))
+                .post(body)
+                .build()
+
+        client.newCall(req).enqueue(
+            object : Callback {
+                override fun onFailure(
+                    call: Call,
+                    e: IOException
+                ) {
+                    source.setException(FirebaseException(e.toString(), e))
+                }
+
+                @Throws(IOException::class)
+                override fun onResponse(call: Call, response: Response) {
+                    source.setResult(null)
+                }
+            }
+        )
     }
 
     private fun enqueueRefreshTokenCall(user: FirebaseUserImpl): TaskCompletionSource<FirebaseUserImpl> {
