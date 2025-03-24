@@ -27,6 +27,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
@@ -338,7 +339,8 @@ class FirebaseAuth constructor(
                 }
 
                 GlobalScope.launch(Dispatchers.Main) {
-                    if (prev?.uid != value?.uid) {
+                    // this check is not great, but it makes desktop user react to email verification
+                    if (prev?.uid != value?.uid || prev?.isEmailVerified != value?.isEmailVerified) {
                         authStateListeners.forEach { l -> l.onAuthStateChanged(this@FirebaseAuth) }
                     }
 
@@ -426,6 +428,8 @@ class FirebaseAuth constructor(
                                 ).jsonObject
 
                         user?.let { prev ->
+                            val new = newBody["users"]?.jsonArray?.firstOrNull()?.jsonObject
+
                             user =
                                 FirebaseUserImpl(
                                     app = app,
@@ -434,11 +438,11 @@ class FirebaseAuth constructor(
                                     idToken = prev.idToken,
                                     refreshToken = prev.refreshToken,
                                     expiresIn = prev.expiresIn,
-                                    createdAt = newBody["createdAt"]?.jsonPrimitive?.longOrNull ?: prev.createdAt,
-                                    email = newBody["email"]?.jsonPrimitive?.contentOrNull ?: prev.email,
-                                    photoUrl = newBody["photoUrl"]?.jsonPrimitive?.contentOrNull ?: prev.photoUrl,
-                                    displayName = newBody["displayName"]?.jsonPrimitive?.contentOrNull ?: prev.displayName,
-                                    isEmailVerified = newBody["emailVerified"]?.jsonPrimitive?.booleanOrNull ?: prev.isEmailVerified
+                                    createdAt = new?.get("createdAt")?.jsonPrimitive?.longOrNull ?: prev.createdAt,
+                                    email = new?.get("email")?.jsonPrimitive?.contentOrNull ?: prev.email,
+                                    photoUrl = new?.get("photoUrl")?.jsonPrimitive?.contentOrNull ?: prev.photoUrl,
+                                    displayName = new?.get("displayName")?.jsonPrimitive?.contentOrNull ?: prev.displayName,
+                                    isEmailVerified = new?.get("emailVerified")?.jsonPrimitive?.booleanOrNull ?: prev.isEmailVerified
                                 )
                             source.setResult(AuthResult { user })
                         }
